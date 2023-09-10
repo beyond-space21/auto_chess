@@ -147,9 +147,9 @@ class PN532(object):
         the board's GPIO pins.
         """
         # Default to platform GPIO if not provided.
-        # self._gpio = gpio
-        # if self._gpio is None:
-        #     self._gpio = GPIO.get_platform_gpio()
+        self._gpio = gpio
+        if self._gpio is None:
+            self._gpio = GPIO.get_platform_gpio()
         # # Initialize CS line.
         # self._cs = cs
         # self._gpio.setup(self._cs, GPIO.OUT)
