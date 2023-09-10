@@ -437,7 +437,7 @@ SCLK = 11
 addr = 0x8
 bus = SMBus(1)
   
-pn532 = PN532(cs=CS, sclk=SCLK, mosi=MOSI, miso=MISO)
+pn532 = PN532(sclk=SCLK, mosi=MOSI, miso=MISO)
 pn532.begin()
 pn532.SAM_configuration()
 
