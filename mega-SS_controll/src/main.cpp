@@ -17,17 +17,20 @@ void receiveEvent(int size)
   {
     data = Wire.read();
     bool mode = (data)>>7;
-    data = (data)^128;
+    data = (data)&127;
 
-    if(mode){// pin_set
+    if(!mode){// pin_set
       pin = data;
     }else{// on/off
-      digitalWrite(pin,data);
+      digitalWrite(pin_[pin],data);
     }
-
+  
+    Serial.print("mode:");
     Serial.print(mode);
-    Serial.print(' ');
-    Serial.println(data);
+    Serial.print(" data:");
+    Serial.print(data);
+    Serial.print(" pin:");
+    Serial.println(pin_[pin]);
   }
 }
 
@@ -35,8 +38,8 @@ void setup()
 {
   Wire.begin(0x8);
   Serial.begin(9600);
-
-  for (byte i = 0; i < 64; i++)
+  pinMode(3,OUTPUT);
+  for (byte i = 0; i < 10; i++)
   {
     pinMode(pin_[i], OUTPUT);
     digitalWrite(pin_[i],0);
