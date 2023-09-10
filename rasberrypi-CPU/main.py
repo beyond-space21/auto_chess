@@ -1,4 +1,4 @@
-from blocks.pn532_chess_poss import pn532 as piece_poss
+from blocks.pn532_chess_poss import possitions as piece_poss
 
 piece_poss.process.start()
 
