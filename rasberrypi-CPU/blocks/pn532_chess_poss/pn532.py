@@ -4,10 +4,13 @@ import binascii
 from functools import reduce
 import logging
 import time
+from smbus import SMBus
 
 import Adafruit_GPIO as GPIO
 import Adafruit_GPIO.SPI as SPI
 
+addr = 0x8
+bus = SMBus(1)
 
 PN532_PREAMBLE                      = 0x00
 PN532_STARTCODE1                    = 0x00
@@ -125,6 +128,8 @@ PN532_FRAME_START                   = bytearray([0x01, 0x00, 0x00, 0xFF])
 
 logger = logging.getLogger(__name__)
 
+on = 129
+off = 128
 
 class PN532(object):
     """PN532 breakout board representation.  Requires a SPI connection to the
@@ -148,7 +153,7 @@ class PN532(object):
         # Initialize CS line.
         self._cs = cs
         self._gpio.setup(self._cs, GPIO.OUT)
-        self._gpio.set_high(self._cs)
+        bus.write_byte(addr,on)
         # Setup SPI provider.
         if spi is not None:
             logger.debug('Using hardware SPI.')
@@ -202,10 +207,10 @@ class PN532(object):
         frame[-1] = PN532_POSTAMBLE
         # Send frame.
         logger.debug('Write frame: 0x{0}'.format(binascii.hexlify(frame)))
-        self._gpio.set_low(self._cs)
+        bus.write_byte(addr,off)
         self._busy_wait_ms(2)
         self._spi.write(frame)
-        self._gpio.set_high(self._cs)
+        bus.write_byte(addr,on)
 
     def _read_data(self, count):
         """Read a specified count of bytes from the PN532."""
@@ -213,10 +218,10 @@ class PN532(object):
         frame = bytearray(count)
         frame[0] = PN532_SPI_DATAREAD
         # Send the frame and return the response, ignoring the SPI header byte.
-        self._gpio.set_low(self._cs)
+        bus.write_byte(addr,off)
         self._busy_wait_ms(2)
         response = self._spi.transfer(frame)
-        self._gpio.set_high(self._cs)
+        bus.write_byte(addr,on)
         return response
 
     def _read_frame(self, length):
@@ -262,10 +267,10 @@ class PN532(object):
         """
         start = time.time()
         # Send a SPI status read command and read response.
-        self._gpio.set_low(self._cs)
+        bus.write_byte(addr,off)
         self._busy_wait_ms(2)
         response = self._spi.transfer([PN532_SPI_STATREAD, 0x00])
-        self._gpio.set_high(self._cs)
+        bus.write_byte(addr,on)
         # Loop until a ready response is received.
         while response[1] != PN532_SPI_READY:
             # Check if the timeout has been exceeded.
@@ -273,10 +278,10 @@ class PN532(object):
                 return False
             # Wait a little while and try reading the status again.
             time.sleep(0.01)
-            self._gpio.set_low(self._cs)
+            bus.write_byte(addr,off)
             self._busy_wait_ms(2)
             response = self._spi.transfer([PN532_SPI_STATREAD, 0x00])
-            self._gpio.set_high(self._cs)
+            bus.write_byte(addr,on)
         return True
 
     def call_function(self, command, response_length=0, params=[], timeout_sec=1):
@@ -315,12 +320,12 @@ class PN532(object):
         other calls are made against the PN532.
         """
         # Assert CS pin low for a second for PN532 to be ready.
-        self._gpio.set_low(self._cs)
+        bus.write_byte(addr,off)
         time.sleep(1.0)
         # Call GetFirmwareVersion to sync up with the PN532.  This might not be
         # required but is done in the Arduino library and kept for consistency.
         self.get_firmware_version()
-        self._gpio.set_high(self._cs)
+        bus.write_byte(addr,on)
 
     def get_firmware_version(self):
         """Call PN532 GetFirmwareVersion function and return a tuple with the IC,
