@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="D:\projects\auto_chess\public\auto_chess\rasberrypi\venv"
+VIRTUAL_ENV="D:\projects\auto_chess\public\auto_chess\rasberrypi-CPU\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
