@@ -1,4 +1,4 @@
-from pn532 import PN532
+import pn532
 from smbus import SMbus
 from time import sleep
 from threading import Thread
@@ -11,7 +11,7 @@ SCLK = 11
 addr = 0x8
 bus = SMbus(1)
   
-pn532 = PN532(cs=CS, sclk=SCLK, mosi=MOSI, miso=MISO)
+pn532 = pn532.PN532(cs=CS, sclk=SCLK, mosi=MOSI, miso=MISO)
 pn532.begin()
 pn532.SAM_configuration()
 
