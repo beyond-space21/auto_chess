@@ -138,7 +138,7 @@ class PN532(object):
     PN532 (see: http://www.raspberrypi.org/forums/viewtopic.php?f=32&t=98070&p=720659#p720659)
     """
 
-    def __init__(self, sclk=None, mosi=None, miso=None, gpio=None,
+    def __init__(self, cs, sclk=None, mosi=None, miso=None, gpio=None,
                  spi=None):
         """Create an instance of the PN532 class using either software SPI (if
         the sclk, mosi, and miso pins are specified) or hardware SPI if a
@@ -150,10 +150,10 @@ class PN532(object):
         self._gpio = gpio
         if self._gpio is None:
             self._gpio = GPIO.get_platform_gpio()
-        # # Initialize CS line.
-        # self._cs = cs
-        # self._gpio.setup(self._cs, GPIO.OUT)
-        # bus.write_byte(addr,on)
+        # Initialize CS line.
+        self._cs = cs
+        self._gpio.setup(self._cs, GPIO.OUT)
+        bus.write_byte(addr,on)
         # Setup SPI provider.
         if spi is not None:
             logger.debug('Using hardware SPI.')
@@ -207,10 +207,10 @@ class PN532(object):
         frame[-1] = PN532_POSTAMBLE
         # Send frame.
         logger.debug('Write frame: 0x{0}'.format(binascii.hexlify(frame)))
-        # bus.write_byte(addr,off)
-        # self._busy_wait_ms(2)
+        bus.write_byte(addr,off)
+        self._busy_wait_ms(2)
         self._spi.write(frame)
-        # bus.write_byte(addr,on)
+        bus.write_byte(addr,on)
 
     def _read_data(self, count):
         """Read a specified count of bytes from the PN532."""
@@ -218,10 +218,10 @@ class PN532(object):
         frame = bytearray(count)
         frame[0] = PN532_SPI_DATAREAD
         # Send the frame and return the response, ignoring the SPI header byte.
-        # bus.write_byte(addr,off)
-        # self._busy_wait_ms(2)
+        bus.write_byte(addr,off)
+        self._busy_wait_ms(2)
         response = self._spi.transfer(frame)
-        # bus.write_byte(addr,on)
+        bus.write_byte(addr,on)
         return response
 
     def _read_frame(self, length):
@@ -267,10 +267,10 @@ class PN532(object):
         """
         start = time.time()
         # Send a SPI status read command and read response.
-        # bus.write_byte(addr,off)
-        # self._busy_wait_ms(2)
+        bus.write_byte(addr,off)
+        self._busy_wait_ms(2)
         response = self._spi.transfer([PN532_SPI_STATREAD, 0x00])
-        # bus.write_byte(addr,on)
+        bus.write_byte(addr,on)
         # Loop until a ready response is received.
         while response[1] != PN532_SPI_READY:
             # Check if the timeout has been exceeded.
@@ -278,10 +278,10 @@ class PN532(object):
                 return False
             # Wait a little while and try reading the status again.
             time.sleep(0.01)
-            # bus.write_byte(addr,off)
-            # self._busy_wait_ms(2)
+            bus.write_byte(addr,off)
+            self._busy_wait_ms(2)
             response = self._spi.transfer([PN532_SPI_STATREAD, 0x00])
-            # bus.write_byte(addr,on)
+            bus.write_byte(addr,on)
         return True
 
     def call_function(self, command, response_length=0, params=[], timeout_sec=1):
@@ -320,12 +320,12 @@ class PN532(object):
         other calls are made against the PN532.
         """
         # Assert CS pin low for a second for PN532 to be ready.
-        # bus.write_byte(addr,off)
-        # time.sleep(1.0)
+        bus.write_byte(addr,off)
+        time.sleep(1.0)
         # Call GetFirmwareVersion to sync up with the PN532.  This might not be
         # required but is done in the Arduino library and kept for consistency.
         self.get_firmware_version()
-        # bus.write_byte(addr,on)
+        bus.write_byte(addr,on)
 
     def get_firmware_version(self):
         """Call PN532 GetFirmwareVersion function and return a tuple with the IC,
@@ -437,7 +437,7 @@ SCLK = 11
 addr = 0x8
 bus = SMBus(1)
   
-pn532 = PN532(sclk=SCLK, mosi=MOSI, miso=MISO)
+pn532 = PN532(cs=CS, sclk=SCLK, mosi=MOSI, miso=MISO)
 pn532.begin()
 pn532.SAM_configuration()
 
@@ -465,9 +465,8 @@ def thread_func():
     while True:
         for index in range(buff_len):
             bus.write_byte(addr,index)
-            bus.write_byte(addr,off)
             buff[index] = read_sqr(index) 
-            bus.write_byte(addr,on)
+            # bus.write_byte(addr,off)
             # sleep(0.1)
 
 process = Thread(target=thread_func)
