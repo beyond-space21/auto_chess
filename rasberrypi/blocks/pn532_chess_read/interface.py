@@ -36,6 +36,6 @@ def read_sqr(index):
 def thread_func():
     while True:
         for i in range(64):
-            buff[i] = read_sqr(i)
+            buff[i] = read_sqr(i) 
 
-board_read_process = Thread(target=thread_func)
+process = Thread(target=thread_func)
