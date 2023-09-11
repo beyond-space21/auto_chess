@@ -153,7 +153,7 @@ class PN532(object):
         # Initialize CS line.
         self._cs = cs
         self._gpio.setup(self._cs, GPIO.OUT)
-        bus.write_byte(addr,on)
+        # bus.write_byte(addr,off)
         # Setup SPI provider.
         if spi is not None:
             logger.debug('Using hardware SPI.')
@@ -210,7 +210,7 @@ class PN532(object):
         bus.write_byte(addr,off)
         self._busy_wait_ms(2)
         self._spi.write(frame)
-        bus.write_byte(addr,on)
+        bus.write_byte(addr,off)
 
     def _read_data(self, count):
         """Read a specified count of bytes from the PN532."""
@@ -221,7 +221,7 @@ class PN532(object):
         bus.write_byte(addr,off)
         self._busy_wait_ms(2)
         response = self._spi.transfer(frame)
-        bus.write_byte(addr,on)
+        bus.write_byte(addr,off)
         return response
 
     def _read_frame(self, length):
@@ -270,7 +270,7 @@ class PN532(object):
         bus.write_byte(addr,off)
         self._busy_wait_ms(2)
         response = self._spi.transfer([PN532_SPI_STATREAD, 0x00])
-        bus.write_byte(addr,on)
+        bus.write_byte(addr,off)
         # Loop until a ready response is received.
         while response[1] != PN532_SPI_READY:
             # Check if the timeout has been exceeded.
@@ -281,7 +281,7 @@ class PN532(object):
             bus.write_byte(addr,off)
             self._busy_wait_ms(2)
             response = self._spi.transfer([PN532_SPI_STATREAD, 0x00])
-            bus.write_byte(addr,on)
+            bus.write_byte(addr,off)
         return True
 
     def call_function(self, command, response_length=0, params=[], timeout_sec=1):
@@ -325,7 +325,7 @@ class PN532(object):
         # Call GetFirmwareVersion to sync up with the PN532.  This might not be
         # required but is done in the Arduino library and kept for consistency.
         self.get_firmware_version()
-        bus.write_byte(addr,on)
+        bus.write_byte(addr,off)
 
     def get_firmware_version(self):
         """Call PN532 GetFirmwareVersion function and return a tuple with the IC,
@@ -465,10 +465,10 @@ def thread_func():
     while True:
         for index in range(buff_len):
             bus.write_byte(addr,index)
-            # bus.write_byte(addr,off)
+            bus.write_byte(addr,off)
             sleep(0.02)
             buff[index] = read_sqr(index)
-            # bus.write_byte(addr,on)
+            bus.write_byte(addr,on)
             print(buff)
 
 process = Thread(target=thread_func)
