@@ -466,7 +466,8 @@ def thread_func():
         for index in range(buff_len):
             bus.write_byte(addr,index)
             buff[index] = read_sqr(index) 
+            print(buff)
             # bus.write_byte(addr,off)
-            # sleep(0.1)
+            sleep(0.02)
 
 process = Thread(target=thread_func)
