@@ -14,7 +14,7 @@ bus = SMBus(1)
 
 PN532_PREAMBLE                      = 0x00
 PN532_STARTCODE1                    = 0x00
-PN532_STARTCODE2                    = 0xFF
+PN532_STARTCODE2                    = 0xFF 
 PN532_POSTAMBLE                     = 0x00
 
 PN532_HOSTTOPN532                   = 0xD4
@@ -209,7 +209,7 @@ class PN532(object):
         logger.debug('Write frame: 0x{0}'.format(binascii.hexlify(frame)))
         bus.write_byte(addr,off)
         self._busy_wait_ms(2)
-        self._spi.write(frame)
+        self._spi.write(frame)        
         bus.write_byte(addr,on)
 
     def _read_data(self, count):
