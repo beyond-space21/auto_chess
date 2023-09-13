@@ -14,7 +14,7 @@ bus = SMBus(1)
 
 PN532_PREAMBLE                      = 0x00
 PN532_STARTCODE1                    = 0x00
-PN532_STARTCODE2                    = 0xFF
+PN532_STARTCODE2                    = 0xFF 
 PN532_POSTAMBLE                     = 0x00
 
 PN532_HOSTTOPN532                   = 0xD4
@@ -209,7 +209,7 @@ class PN532(object):
         logger.debug('Write frame: 0x{0}'.format(binascii.hexlify(frame)))
         bus.write_byte(addr,off)
         self._busy_wait_ms(2)
-        self._spi.write(frame)
+        self._spi.write(frame)        
         bus.write_byte(addr,on)
 
     def _read_data(self, count):
@@ -434,8 +434,8 @@ MOSI = 10
 MISO = 9
 SCLK = 11
 
-addr = 0x8
-bus = SMBus(1)
+# addr = 0x8
+# bus = SMBus(1)
   
 pn532 = PN532(cs=CS, sclk=SCLK, mosi=MOSI, miso=MISO)
 pn532.begin()
@@ -465,9 +465,10 @@ def thread_func():
     while True:
         for index in range(buff_len):
             bus.write_byte(addr,index)
-            buff[index] = read_sqr(index) 
-            print(buff)
             # bus.write_byte(addr,off)
             sleep(0.02)
+            buff[index] = read_sqr(index)
+            # bus.write_byte(addr,on)
+            print(buff)
 
 process = Thread(target=thread_func)
