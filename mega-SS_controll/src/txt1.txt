@@ -16,7 +16,8 @@ void setup(void)
   Serial.begin(9600);
   nfc.begin();
 
-  if (!nfc.getFirmwareVersion())
+  uint32_t versiondata = nfc.getFirmwareVersion();
+  if (!versiondata)
   {
     Serial.print("! board 1");
     while (1);
@@ -24,7 +25,7 @@ void setup(void)
 
   long int time = millis();
 
-  success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
+  success = nfc.readPassiveTargetID_board(sqr_data,ttl_sqr,sqr_ss,PN532_MIFARE_ISO14443A, uid, &uidLength);
 
   if (success)
   {
@@ -34,13 +35,11 @@ void setup(void)
   }
 
     //chess piece possition buffer access
-    // Serial.println("recieved chess piece possition buffer,");
-    // for(uint8_t i = 0;i<ttl_sqr;i++){
-    //   Serial.print(sqr_data[i]);
-    //   Serial.println();
-    // }
-
-  nfc.PrintHex(uid, uidLength);
+    Serial.println("recieved chess piece possition buffer,");
+    for(uint8_t i = 0;i<ttl_sqr;i++){
+      Serial.print(sqr_data[i]);
+      Serial.println();
+    }
 
   Serial.print(millis() - time);
   Serial.println("ms");
