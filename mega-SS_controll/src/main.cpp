@@ -1,52 +1,38 @@
-#include <Wire.h>
-#include <SPI.h>
-#include <Adafruit_PN532.h>
+#include <nfc.h>
 
-Adafruit_PN532 nfc(2);
+#define own
 
-uint8_t success;
-uint8_t uid[] = {0, 0, 0, 0, 0, 0, 0};
-uint8_t uidLength;
-const uint8_t ttl_sqr = 2;
-uint8_t sqr_ss[ttl_sqr] = {2,3};
-String sqr_data[ttl_sqr];
+#ifndef own
+  #include <PN532_SPI.h>
+  #include <PN532.h>
+  PN532_SPI pn532spi(SPI, 10);
+  PN532 nfc(pn532spi);
+#endif
 
-void setup(void)
-{
+uint8_t sqr_pins[2] = {2,3};
+
+void setup(){
   Serial.begin(9600);
+#ifndef own
   nfc.begin();
+  uint32_t versiondata = nfc.getFirmwareVersion(sqr_pins);
+  if (! versiondata) {
+    Serial.print("Didn't find PN53x board");
+    while (1); // halt
+  }
+#else
 
-  if (!nfc.getFirmwareVersion())
-  {
-    Serial.print("! board 1");
+  SPI.begin();
+  SPI.beginTransaction(SPISettings(1000000,LSBFIRST,SPI_MODE0));
+  uint32_t versiondata = getFirmwareVersion(sqr_pins);
+  if (! versiondata) {
+    Serial.print("Didn't find PN53x board");
     while (1);
   }
-
-  long int time = millis();
-
-  success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
-
-  if (success)
-  {
-    uint8_t data[32];
-    nfc.mifareultralight_ReadPage(4, data);
-    Serial.println("");
-  }
-
-    //chess piece possition buffer access
-    // Serial.println("recieved chess piece possition buffer,");
-    // for(uint8_t i = 0;i<ttl_sqr;i++){
-    //   Serial.print(sqr_data[i]);
-    //   Serial.println();
-    // }
-
-  nfc.PrintHex(uid, uidLength);
-
-  Serial.print(millis() - time);
-  Serial.println("ms");
+Serial.println(">> board OK..!");
+#endif
 }
 
-void loop(void)
-{
-  delay(100);
+void loop(){
+  delay(10);
 }
