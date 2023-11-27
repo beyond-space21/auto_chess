@@ -1,0 +1,116 @@
+@font-face {
+    font-family: sansation;
+    src: url('Sansation.ttf');
+}
+
+body {
+    background-color: rgb(42, 46, 95);
+    border: 0;
+    margin: 40px;
+    color: aliceblue;
+    font-family: sansation;
+}
+
+#board {
+    width: fit-content;
+    /* background-color: rgb(109, 109, 109); */
+    background-color: rgb(98, 103, 178);
+    border-radius: 10px;
+    padding-top: 80px;
+    padding-left: 80px;
+}
+
+.box {
+    width: 9vh;
+    height: 9vh;
+    border-radius: 15px;
+    /* vertical-align: middle; */
+}
+
+.box_w {
+    background-color: rgb(255, 255, 255);
+}
+
+.box_b {
+    background-color: rgb(24, 23, 23);
+}
+
+img {
+    -webkit-user-drag: none;
+}
+
+#control_panel {
+    position: fixed;
+    right: 100px;
+    bottom: 200px;
+    background-color: rgb(79, 79, 79);
+    border-radius: 5px;
+}
+
+.c_box {
+    background-color: black;
+    color: aliceblue;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 700;
+    margin: 10px;
+    padding: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#full_screen .modal {
+    /* height: 50vh; */
+    width: 50vw;
+    border-radius: 50px;
+    padding: 25px;
+    background-color: rgb(2, 25, 89);
+    font-size: xx-large;
+    margin: auto;
+    margin-top: 200px;
+}
+#full_screen .modal .cnt {
+    height: fit-content;
+    width: fit-content;
+    margin: auto;
+    color: rgb(255, 255, 255);
+}
+#full_screen .modal #btn_req_fl_s {
+    width: fit-content;
+    height: fit-content;
+    background-color: rgb(211, 118, 118);
+    padding: 10px;
+    border-radius: 20px;
+    font-weight: 800;
+    margin: auto;
+}
+
+#full_screen {
+    display: block;
+}
+
+#board {
+    display: none;
+}
+
+#lft_pan{
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 400px;
+    height: 565px;
+    margin-top: 82px;
+    margin-right: 70px;
+    background-color: rgb(28, 0, 22);
+    border-radius: 20px;
+    padding: 20px;
+    font-size: x-large;
+    overflow-y: scroll;
+}
+
+#lft_pan .hed{
+    font-size: xx-large;
+}
+
+#lft_pan tr{
+    margin: 10px;
+}

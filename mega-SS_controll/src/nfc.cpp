@@ -1,18 +1,30 @@
 #include <nfc.h>
+#include "Arduino.h"
 
-#define _ss 10
+uint8_t _ss;
+// uint8_t *sqr_pin;
+// uint8_t *sqr_data;
 
 uint8_t command;
 uint8_t pn532_packetbuffer[64];
 
-uint32_t getFirmwareVersion(uint8_t *sqr_pins)
+void ss_set(uint8_t _pin){
+    _ss = _pin;
+    // pn532_packetbuffer[64]=0;
+    command = 0;
+    for(int i=0;i<64;i++){
+        pn532_packetbuffer[i]=0;
+    }
+}
+
+uint32_t getFirmwareVersion()
 {
     Serial.println("getfiremware()");
     uint32_t response;
 
     pn532_packetbuffer[0] = PN532_COMMAND_GETFIRMWAREVERSION;
 
-    if (writeCommand(sqr_pins,pn532_packetbuffer, 1)) {
+    if (writeCommand(pn532_packetbuffer, 1)) {
         return 0;
     }
 
@@ -33,9 +45,114 @@ uint32_t getFirmwareVersion(uint8_t *sqr_pins)
     return response;
 }
 
-void writeFrame(uint8_t *sqr_pins, const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen)
+bool readPassiveTargetID(uint8_t *uid, uint8_t *uidLength){
+
+    pn532_packetbuffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
+    pn532_packetbuffer[1] = 1;  // max 1 cards at once (we can set this to 2 later)
+    pn532_packetbuffer[2] = PN532_MIFARE_ISO14443A;
+
+    if (writeCommand(pn532_packetbuffer, 3)) {
+        return 0x0;  // command failed
+    }
+
+    // read data packet
+    if (readResponse(pn532_packetbuffer, sizeof(pn532_packetbuffer)) < 0) {
+        return 0x0;
+    }
+
+    // check some basic stuff
+    /* ISO14443A card response should be in the following format:
+
+      byte            Description
+      -------------   ------------------------------------------
+      b0              Tags Found
+      b1              Tag Number (only one used in this example)
+      b2..3           SENS_RES
+      b4              SEL_RES
+      b5              NFCID Length
+      b6..NFCIDLen    NFCID
+    */
+
+    if (pn532_packetbuffer[0] != 1)
+        return 0;
+
+    uint16_t sens_res = pn532_packetbuffer[2];
+    sens_res <<= 8;
+    sens_res |= pn532_packetbuffer[3];
+
+    // DMSG("ATQA: 0x");  DMSG_HEX(sens_res);
+    // DMSG("SAK: 0x");  DMSG_HEX(pn532_packetbuffer[4]);
+    // DMSG("\n");
+
+    /* Card appears to be Mifare Classic */
+    *uidLength = pn532_packetbuffer[5];
+
+    for (uint8_t i = 0; i < pn532_packetbuffer[5]; i++) {
+        uid[i] = pn532_packetbuffer[6 + i];
+    }
+
+    return 1;
+
+}
+
+
+bool mifareultralight_ReadPage (uint8_t page, uint8_t *buffer)
 {
-    Serial.println("writeframe()");
+    /* Prepare the command */
+    pn532_packetbuffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+    pn532_packetbuffer[1] = 1;                   /* Card number */
+    pn532_packetbuffer[2] = 0x30;     /* Mifare Read command = 0x30 */
+    pn532_packetbuffer[3] = page;                /* Page Number (0..63 in most cases) */
+
+    /* Send the command */
+    if (writeCommand(pn532_packetbuffer, 4)) {
+        return 0;
+    }
+
+    /* Read the response packet */
+    readResponse(pn532_packetbuffer, sizeof(pn532_packetbuffer));
+
+    /* If byte 8 isn't 0x00 we probably have an error */
+    if (pn532_packetbuffer[0] == 0x00) {
+        /* Copy the 4 data bytes to the output buffer         */
+        /* Block content starts at byte 9 of a valid response */
+        /* Note that the command actually reads 16 bytes or 4  */
+        /* pages at a time ... we simply discard the last 12  */
+        /* bytes                                              */
+        memcpy (buffer, pn532_packetbuffer + 1, 4);
+    } else {
+        return 0;
+    }
+
+    // Return OK signal
+    return 1;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+void wakeup()
+{
+    digitalWrite(_ss, LOW);
+    delay(2);
+    digitalWrite(_ss, HIGH);
+}
+
+bool SAMConfig()
+{
+    pn532_packetbuffer[0] = PN532_COMMAND_SAMCONFIGURATION;
+    pn532_packetbuffer[1] = 0x01; // normal mode;
+    pn532_packetbuffer[2] = 0x14; // timeout 50ms * 20 = 1 second
+    pn532_packetbuffer[3] = 0x01; // use IRQ pin!
+
+
+    if (writeCommand(pn532_packetbuffer, 4))
+        return false;
+
+    return (0 < readResponse(pn532_packetbuffer, sizeof(pn532_packetbuffer)));
+}
+
+void writeFrame(const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen)
+{
+    // Serial.println("writeframe()");
     digitalWrite(_ss, LOW);
     delay(2); // wake up PN532
 
@@ -70,7 +187,7 @@ void writeFrame(uint8_t *sqr_pins, const uint8_t *header, uint8_t hlen, const ui
 }
 
 int16_t readResponse(uint8_t buf[], uint8_t len, uint16_t timeout){
-    Serial.println("readresponse()");
+    // Serial.println("readresponse()");
     uint16_t time = 0;
     while (!isReady())
     {
@@ -151,11 +268,11 @@ int16_t readResponse(uint8_t buf[], uint8_t len, uint16_t timeout){
     return result;
 }
 
-int8_t writeCommand(uint8_t *sqr_pins, const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen)
+int8_t writeCommand(const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen)
 {
-    Serial.println("writecommand()");
+    // Serial.println("writecommand()");
     command = header[0];
-    writeFrame(sqr_pins,header, hlen, body, blen);
+    writeFrame(header, hlen, body, blen);
 
     uint8_t timeout = PN532_ACK_WAIT_TIME;
     while (!isReady())
@@ -176,7 +293,7 @@ int8_t writeCommand(uint8_t *sqr_pins, const uint8_t *header, uint8_t hlen, cons
 
 bool isReady()
 {
-    Serial.println("isready()");
+    // Serial.println("isready()");
     digitalWrite(_ss, LOW);
     write(STATUS_READ);
     uint8_t status = read() & 1;
@@ -186,7 +303,7 @@ bool isReady()
 
 int8_t readAckFrame()
 {
-    Serial.println("readACKFrame()");
+    // Serial.println("readACKFrame()");
     const uint8_t PN532_ACK[] = {0, 0, 0xFF, 0, 0xFF, 0};
     uint8_t ackBuf[sizeof(PN532_ACK)];
 
@@ -213,3 +330,128 @@ uint8_t read()
 {
     return SPI.transfer(0);
 }
+
+void init_pipeline(uint8_t _pin);
+
+
+
+////////////////////////////////////////////////////////////////
+
+
+
+
+// bool PN532::readPassiveTargetID(uint8_t cardbaudrate, uint8_t *uid, uint8_t *uidLength, uint16_t timeout, bool inlist)
+// {
+//     pn532_packetbuffer[0] = PN532_COMMAND_INLISTPASSIVETARGET;
+//     pn532_packetbuffer[1] = 1;  // max 1 cards at once (we can set this to 2 later)
+//     pn532_packetbuffer[2] = cardbaudrate;
+
+//     if (writeCommand(pn532_packetbuffer, 3)) {
+//         return 0x0;  // command failed
+//     }
+
+//     // read data packet
+//     if (readResponse(pn532_packetbuffer, sizeof(pn532_packetbuffer), timeout) < 0) {
+//         return 0x0;
+//     }
+
+//     if (pn532_packetbuffer[0] != 1)
+//         return 0;
+
+//     uint16_t sens_res = pn532_packetbuffer[2];
+//     sens_res <<= 8;
+//     sens_res |= pn532_packetbuffer[3];
+
+//     /* Card appears to be Mifare Classic */
+//     *uidLength = pn532_packetbuffer[5];
+
+//     for (uint8_t i = 0; i < pn532_packetbuffer[5]; i++) {
+//         uid[i] = pn532_packetbuffer[6 + i];
+//     }
+
+//     if (inlist) {
+//         inListedTag = pn532_packetbuffer[1];
+//     }
+
+//     return 1;
+// }
+
+
+
+
+// ////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+// mifareclassic_AuthenticateBlock (uint8_t *uid, uint8_t uidLen, uint32_t blockNumber, uint8_t keyNumber, uint8_t *keyData)
+// {
+//     uint8_t i;
+
+//     // Hang on to the key and uid data
+//     memcpy (_key, keyData, 6);
+//     memcpy (_uid, uid, uidLen);
+//     _uidLen = uidLen;
+
+//     // Prepare the authentication command //
+//     pn532_packetbuffer[0] = PN532_COMMAND_INDATAEXCHANGE;   /* Data Exchange Header */
+//     pn532_packetbuffer[1] = 1;                              /* Max card numbers */
+//     pn532_packetbuffer[2] = (keyNumber) ? MIFARE_CMD_AUTH_B : MIFARE_CMD_AUTH_A;
+//     pn532_packetbuffer[3] = blockNumber;                    /* Block Number (1K = 0..63, 4K = 0..255 */
+//     memcpy (pn532_packetbuffer + 4, _key, 6);
+//     for (i = 0; i < _uidLen; i++) {
+//         pn532_packetbuffer[10 + i] = _uid[i];              /* 4 bytes card ID */
+//     }
+
+//     if (writeCommand(pn532_packetbuffer, 10 + _uidLen))
+//         return 0;
+
+//     // Read the response packet
+//     readResponse(pn532_packetbuffer, sizeof(pn532_packetbuffer));
+
+//     // Check if the response is valid and we are authenticated???
+//     // for an auth success it should be bytes 5-7: 0xD5 0x41 0x00
+//     // Mifare auth error is technically byte 7: 0x14 but anything other and 0x00 is not good
+//     if (pn532_packetbuffer[0] != 0x00) {
+//         return 0;
+//     }
+
+//     return 1;
+// }
+
+
+
+
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+// mifareclassic_ReadDataBlock (uint8_t blockNumber, uint8_t *data)
+// {
+
+//     /* Prepare the command */
+//     pn532_packetbuffer[0] = PN532_COMMAND_INDATAEXCHANGE;
+//     pn532_packetbuffer[1] = 1;                      /* Card number */
+//     pn532_packetbuffer[2] = MIFARE_CMD_READ;        /* Mifare Read command = 0x30 */
+//     pn532_packetbuffer[3] = blockNumber;            /* Block Number (0..63 for 1K, 0..255 for 4K) */
+
+//     /* Send the command */
+//     if (writeCommand(pn532_packetbuffer, 4)) {
+//         return 0;
+//     }
+
+//     /* Read the response packet */
+//     readResponse(pn532_packetbuffer, sizeof(pn532_packetbuffer));
+
+//     /* If byte 8 isn't 0x00 we probably have an error */
+//     if (pn532_packetbuffer[0] != 0x00) {
+//         return 0;
+//     }
+
+//     /* Copy the 16 data bytes to the output buffer        */
+//     /* Block content starts at byte 9 of a valid response */
+//     memcpy (data, pn532_packetbuffer + 1, 16);
+
+//     return 1;
+// }

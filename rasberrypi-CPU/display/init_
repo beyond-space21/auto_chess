@@ -1,0 +1,5 @@
+sudo mount -t cifs -o username=intern,password=12345 //LAPTOP-9919T5HF/auto_chess /home/rajanand/mount/auto_chess
+source venv_pi/bin/activate
+cd mount/auto_chess/rasberrypi-CPU
+
+https://support.mozilla.org/en-US/questions/1294382

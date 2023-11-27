@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chess</title>
+    <link rel="stylesheet" href="css.css">
+</head>
+<style>
+
+</style>
+
+<body>
+    <div id="full_screen">
+        <div class="modal">
+            <div class="cnt">
+                Full screen access
+            </div>
+            <br><br>
+            <div id="btn_req_fl_s" onclick="fs_req()">Go -> ?</div>
+        </div>
+    </div>
+
+    <div id="board">
+        <table>
+            <tr>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+            </tr>
+            <tr>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+                <th>
+                    <div class="box box_b"></div>
+                </th>
+                <th>
+                    <div class="box box_w"></div>
+                </th>
+            </tr>
+        </table>
+
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>

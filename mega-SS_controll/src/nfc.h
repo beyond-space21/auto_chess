@@ -1,13 +1,21 @@
 #include <Arduino.h>
 #include <SPI.h>
 
-uint32_t getFirmwareVersion(uint8_t *sqr_pins);
+void ss_set(uint8_t _pin);
 
-int8_t writeCommand(uint8_t *sqr_pins,const uint8_t *header, uint8_t hlen, const uint8_t *body=0, uint8_t blen=0);
+uint32_t getFirmwareVersion();
+bool readPassiveTargetID(uint8_t *uid, uint8_t *uidLength);
+bool mifareultralight_ReadPage (uint8_t page, uint8_t *buffer);
+
+void init_pipeline(uint8_t _pin);
+
+bool SAMConfig();
+void wakeup();
+int8_t writeCommand(const uint8_t *header, uint8_t hlen, const uint8_t *body=0, uint8_t blen=0);
 bool isReady();
 int16_t readResponse(uint8_t buf[], uint8_t len, uint16_t timeout=100);
 int8_t readAckFrame();
-void writeFrame(uint8_t *sqr_pins, const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen);
+void writeFrame(const uint8_t *header, uint8_t hlen, const uint8_t *body, uint8_t blen);
 
 void write(uint8_t data);
 uint8_t read();
